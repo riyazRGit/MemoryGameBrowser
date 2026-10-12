@@ -8,11 +8,42 @@
         /* Reset default styles and set up CSS custom properties for theming */
         :root {
             --primary-color: #2196f3;
+            --primary-color-hover: #1565c0;
+            --primary-color-active: #0d47a1;
             --background-color: #f5f5f5;
+            --surface-color: #ffffff;
+            --surface-alt: #f0f4f8;
             --card-back: #1976d2;
+            --card-back-hover: #145ca8;
             --card-front: #ffffff;
             --text-color: #333333;
+            --text-muted: #4a5568;
             --success-color: #4caf50;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --modal-overlay: rgba(0, 0, 0, 0.5);
+            --card-shadow: rgba(0, 0, 0, 0.1);
+            --button-text: #ffffff;
+            --button-hover: #1565c0;
+        }
+
+        body.dark-theme {
+            --primary-color: #64b5f6;
+            --primary-color-hover: #90caf9;
+            --primary-color-active: #42a5f5;
+            --background-color: #101820;
+            --surface-color: #1d2a36;
+            --surface-alt: #243244;
+            --card-back: #1e88e5;
+            --card-back-hover: #1565c0;
+            --card-front: #16212d;
+            --text-color: #e5edf6;
+            --text-muted: #c2d0df;
+            --success-color: #66bb6a;
+            --shadow-color: rgba(0, 0, 0, 0.45);
+            --modal-overlay: rgba(0, 0, 0, 0.7);
+            --card-shadow: rgba(0, 0, 0, 0.35);
+            --button-text: #08151d;
+            --button-hover: #b3e5fc;
         }
 
         * {
@@ -29,6 +60,7 @@
             line-height: 1.6;
             padding: 20px;
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Main container with max-width for larger screens */
@@ -52,12 +84,13 @@
         .controls {
             display: flex;
             justify-content: space-around;
+            align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            background: white;
+            background: var(--surface-color);
             padding: 1rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--shadow-color);
             margin-bottom: 2rem;
         }
 
@@ -68,6 +101,11 @@
         .stat-value {
             font-size: 1.25rem;
             font-weight: bold;
+        }
+
+        .theme-toggle {
+            min-width: 140px;
+            margin-left: auto;
         }
 
         /* Grid size selector styles */
@@ -81,18 +119,22 @@
             border: none;
             border-radius: 4px;
             background: var(--primary-color);
-            color: white;
+            color: var(--button-text);
             cursor: pointer;
             font-size: 1rem;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         button:hover {
-            background-color: #1565c0;
+            background-color: var(--primary-color-hover);
+        }
+
+        button:active {
+            transform: translateY(1px);
         }
 
         button.active {
-            background-color: #0d47a1;
+            background-color: var(--primary-color-active);
         }
 
         /* Game grid styles with responsive layout */
@@ -146,17 +188,22 @@
             align-items: center;
             justify-content: center;
             font-size: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--card-shadow);
         }
 
         .card-front {
             background: var(--card-front);
+            color: var(--text-color);
             transform: rotateY(180deg);
         }
 
         .card-back {
             background: var(--card-back);
             color: white;
+        }
+
+        .card-back:hover {
+            background: var(--card-back-hover);
         }
 
         /* Win modal styles */
@@ -167,18 +214,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: var(--modal-overlay);
             justify-content: center;
             align-items: center;
         }
 
         .modal-content {
-            background: white;
+            background: var(--surface-color);
+            color: var(--text-color);
             padding: 2rem;
             border-radius: 8px;
             text-align: center;
             max-width: 400px;
             width: 90%;
+            box-shadow: 0 4px 12px var(--shadow-color);
         }
 
         /* Best scores section */
@@ -190,9 +239,11 @@
         .scores-list {
             max-width: 600px;
             margin: 1rem auto;
-            background: white;
+            background: var(--surface-color);
+            color: var(--text-color);
             padding: 1rem;
             border-radius: 8px;
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
 
         /* Responsive design adjustments */
@@ -200,6 +251,10 @@
             .controls {
                 flex-direction: column;
                 align-items: center;
+            }
+
+            .theme-toggle {
+                margin-left: 0;
             }
 
             .game-grid {
@@ -234,6 +289,7 @@
                 <h2>Rating</h2>
                 <p class="stat-value rating" aria-live="polite">★★★</p>
             </div>
+            <button class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">🌙 Dark mode</button>
         </div>
 
         <!-- Grid size selector -->
@@ -286,8 +342,19 @@
             modal: document.querySelector('.modal'),
             finalStats: document.querySelector('.final-stats'),
             gridButtons: document.querySelectorAll('.grid-btn'),
-            scoresList: document.querySelector('.scores-list')
+            scoresList: document.querySelector('.scores-list'),
+            themeToggle: document.querySelector('.theme-toggle')
         };
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            document.body.classList.toggle('dark-theme', isDark);
+            elements.themeToggle.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+            elements.themeToggle.setAttribute('aria-pressed', String(isDark));
+            elements.themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+            localStorage.setItem('memoryGameTheme', theme);
+        }
+
 
         // Card symbols (emojis) for both grid sizes
         const symbols = {
@@ -482,6 +549,11 @@
             }
         });
 
+        elements.themeToggle.addEventListener('click', () => {
+            const nextTheme = document.body.classList.contains('dark-theme') ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        });
+
         document.querySelector('.play-again').addEventListener('click', () => {
             elements.modal.style.display = 'none';
             initializeGrid();
@@ -499,6 +571,8 @@
         });
 
         // Initialize game
+        const savedTheme = localStorage.getItem('memoryGameTheme') || 'light';
+        applyTheme(savedTheme);
         updateScoresList();
         initializeGrid();
     </script>
